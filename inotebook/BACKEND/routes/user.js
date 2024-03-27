@@ -8,6 +8,8 @@ const bcrypt = require('bcryptjs');
 const  jwt = require('jsonwebtoken');
 const JWT_SCERET="ilovecoding";
 
+const fetchuser=require('../middleware/fetchuser.js');
+
 // const passport=require("passport");
 // const LocalStrategy=require("passport-local");
 
@@ -21,6 +23,10 @@ const JWT_SCERET="ilovecoding";
 // const userController=require('../controllers/user');
 
 
+
+
+//  ROUTE 1
+// create the user in the database 
 
 
 router.post('/createuser',[body('email',"enter the valid email").isEmail(),body('name',"enter the valid name").isLength({min:3}),body('password',"enter the valid passowrod and at least 5 characters.").isLength({min:5})],async(req,res)=>{
@@ -56,9 +62,62 @@ router.post('/createuser',[body('email',"enter the valid email").isEmail(),body(
         }
     }catch(error){
         console.log(error.message);
-        res.status(500).send("some error occured");
+        res.status(500).send("internal server error");
     }
     
+});
+
+//  ROUTE 2
+
+
+// autheniticate the user 
+router.post("/login",[body('email',"enter the valid email").isEmail(),body('password',"password can not be blank :").exists()],async(req,res)=>{
+    const errors=validationResult(req);
+
+    if(!errors.isEmpty()){
+        return res.status(500).json({errors: errors.array()});
+    }
+
+    const {email,password}=req.body;
+
+    try{
+        let useremail=await User.findOne({email});
+        if(!useremail){
+            return res.status(400).json({msg:"Invalid Email or Password"});
+        }
+
+        const passwordcompare= await bcrypt.compare(password,useremail.password);
+
+        if(!passwordcompare) {
+            return res.status(500),json({message:"please use right email and password"});
+        }
+
+        const data={
+            user:{
+                id:useremail.id
+            }
+        }
+
+        const authtoken=jwt.sign(data,JWT_SCERET);
+        res.json(authtoken);
+    }catch(error){
+        console.log(error.message);
+        res.status(500).send("internal server error");
+    }
 })
 
+
+//ROUTE 3 
+// get loggedin user details usit POST : Login required
+
+router.post("/getuser",fetchuser,async(req,res)=>{
+    try{
+        const userId=req.user.id;
+        const user=await User.findById(userId).select('-password');
+        res.send(user);
+    }catch(error){
+        console.log(error);
+        res.status(500).send("Internal server error");
+    }
+})
 module.exports=router;
