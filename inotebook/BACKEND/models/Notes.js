@@ -1,13 +1,18 @@
-import mongoose from 'mongoose';
+const mongoose=require('mongoose');
 
-const {Schema}= mongoose;
 
-const notesSchma= new Schema({
+// const {Schema}= mongoose;
+
+const notesSchma= mongoose.Schema({
+    user:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'User'
+    },
     title:{
         type:String,
         required:true
     },
-    desctiption:{
+    description:{
         type:String,
         required:true
     },
@@ -21,4 +26,5 @@ const notesSchma= new Schema({
     }
 });
 
-module.exports=mongoose.Schema('notes',notesSchma);  // create a model  name notes and it is created 
+let notes=mongoose.model('Notes',notesSchma);  // create a model  name notes and it is created 
+module.exports=notes;

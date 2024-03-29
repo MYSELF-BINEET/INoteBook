@@ -10,7 +10,7 @@ const fetchuser=(req,res,next)=>{
     }
 
     try {
-        const string=jwt.verify(token,JWT_SCERET);
+        const data=jwt.verify(token,JWT_SCERET);
     req.user=data.user;
     next();
     } catch (error) {
